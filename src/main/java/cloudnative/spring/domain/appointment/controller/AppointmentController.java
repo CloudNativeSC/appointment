@@ -4,6 +4,7 @@ import cloudnative.spring.domain.appointment.dto.AppointmentResponseDto;
 import cloudnative.spring.domain.appointment.repository.AppointmentRepository;
 import cloudnative.spring.domain.appointment.service.AppointmentService;
 import cloudnative.spring.global.response.ApiResponse;
+import cloudnative.spring.global.response.status.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +16,25 @@ import java.util.List;
 @RequestMapping("/api/appointments") // 약속 api
 @RequiredArgsConstructor
 public class AppointmentController {
-
-
     private final AppointmentService appointmentService;
-    //약속 장소 검색
+
     @GetMapping("/places/search")
-    public ApiResponse<List<AppointmentResponseDto.PlaceDto>> searchAppointmentPlace(
+    public ResponseEntity<ApiResponse<List<AppointmentResponseDto.PlaceDto>>> searchAppointmentPlace(
             @RequestParam String keyword) {
 
         List<AppointmentResponseDto.PlaceDto> places = appointmentService.searchPlaces(keyword);
-        return ApiResponse.onSuccess(places);
+
+        if (places.isEmpty()) {
+            return ResponseEntity
+                    .status(ErrorCode.PLACE_NOT_FOUND.getHttpStatus())
+                    .body(ApiResponse.onFailure(
+                            ErrorCode.PLACE_NOT_FOUND.getCode(),
+                            ErrorCode.PLACE_NOT_FOUND.getMessage(),
+                            null
+                    ));
+        }
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(places));
     }
 
 

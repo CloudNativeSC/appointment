@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: appointment
+
+  config:
+    import: "application-secret.yml"
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    cloudnative.spring: DEBUG
