@@ -55,10 +55,11 @@ public class AppointmentController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<AppointmentPlaceResponseDto>> createAppointment(
-            @RequestParam Long placeId, // 저장된 장소 ID
+            @RequestParam Long placeId,
             @RequestBody AppointmentPlaceRequestDto requestDto
     ) {
         AppointmentPlaceResponseDto response = appointmentService.createAppointment(placeId, requestDto);
+
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
