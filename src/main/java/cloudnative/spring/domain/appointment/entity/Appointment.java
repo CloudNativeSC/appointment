@@ -34,10 +34,6 @@ public class Appointment {
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "ENUM('WALK','CAR','TRANSIT')")
-    private Transportation transportation;
-
     @Column(name = "estimated_travel_time", nullable = false)
     private Integer estimatedTravelTime;
 
@@ -57,10 +53,6 @@ public class Appointment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id", nullable = false)
     private Place place;
-
-    public enum Transportation {
-        WALK, CAR, TRANSIT
-    }
 
     public enum Status {
         PENDING, CONFIRMED, CANCELLED

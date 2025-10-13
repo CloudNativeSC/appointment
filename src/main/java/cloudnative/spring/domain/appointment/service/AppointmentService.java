@@ -1,10 +1,16 @@
 package cloudnative.spring.domain.appointment.service;
 
+import cloudnative.spring.domain.appointment.dto.PlaceRequestDto;
+import cloudnative.spring.domain.appointment.dto.PlaceResponseDto;
 import cloudnative.spring.domain.appointment.dto.AppointmentResponseDto;
+import cloudnative.spring.domain.appointment.entity.Place;
+import cloudnative.spring.domain.appointment.repository.AppointmentRepository;
+import cloudnative.spring.domain.appointment.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -34,6 +40,9 @@ public class AppointmentService {
 
     /** Spring RestTemplate (외부 API 호출용) */
     private final RestTemplate restTemplate = new RestTemplate();
+
+    private final AppointmentRepository appointmentRepository;
+    private final PlaceRepository placeRepository;
 
     /**
      * 키워드 기반 장소 검색 메서드.
@@ -169,4 +178,37 @@ public class AppointmentService {
 
         return 0.0;
     }
+
+    /**
+     *장소 선택 → Place 테이블에 저장
+     *
+     * 사용자가 Tmap 검색 결과에서 장소를 선택하면
+     * 그 정보를 DB에 저장하고, 저장된 장소 정보를 응답으로 반환합니다.
+     */
+    @Transactional
+    public PlaceResponseDto selectAppointmentPlace(PlaceRequestDto requestDto) {
+        // 전달받은 장소 정보로 Place 엔티티 생성
+        Place place = Place.builder()
+                .name(requestDto.getName())
+                .address(requestDto.getAddress())
+                .latitude(requestDto.getLatitude())
+                .longitude(requestDto.getLongitude())
+                .build();
+
+        // DB 저장
+        Place savedPlace = placeRepository.save(place);
+
+        // 응답 변환
+        return PlaceResponseDto.builder()
+                .placeId(savedPlace.getId())
+                .name(savedPlace.getName())
+                .address(savedPlace.getAddress())
+                .latitude(savedPlace.getLatitude())
+                .longitude(savedPlace.getLongitude())
+                .build();
+    }
+
+
+
+
 }
