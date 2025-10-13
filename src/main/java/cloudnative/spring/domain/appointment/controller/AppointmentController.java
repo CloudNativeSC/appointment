@@ -1,8 +1,6 @@
 package cloudnative.spring.domain.appointment.controller;
 
-import cloudnative.spring.domain.appointment.dto.PlaceRequestDto;
-import cloudnative.spring.domain.appointment.dto.PlaceResponseDto;
-import cloudnative.spring.domain.appointment.dto.AppointmentResponseDto;
+import cloudnative.spring.domain.appointment.dto.*;
 import cloudnative.spring.domain.appointment.service.AppointmentService;
 import cloudnative.spring.global.response.ApiResponse;
 import cloudnative.spring.global.response.status.ErrorCode;
@@ -51,4 +49,18 @@ public class AppointmentController {
         PlaceResponseDto responseDto = appointmentService.selectAppointmentPlace(requestDto);
         return ResponseEntity.ok(ApiResponse.onSuccess(responseDto));
     }
+
+    /**
+     * 약속 장소 생성
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse<AppointmentPlaceResponseDto>> createAppointment(
+            @RequestParam Long placeId,
+            @RequestBody AppointmentPlaceRequestDto requestDto
+    ) {
+        AppointmentPlaceResponseDto response = appointmentService.createAppointment(placeId, requestDto);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
 }

@@ -1,11 +1,12 @@
 package cloudnative.spring.domain.appointment.service;
 
-import cloudnative.spring.domain.appointment.dto.PlaceRequestDto;
-import cloudnative.spring.domain.appointment.dto.PlaceResponseDto;
-import cloudnative.spring.domain.appointment.dto.AppointmentResponseDto;
+import cloudnative.spring.domain.appointment.dto.*;
+import cloudnative.spring.domain.appointment.entity.Appointment;
 import cloudnative.spring.domain.appointment.entity.Place;
 import cloudnative.spring.domain.appointment.repository.AppointmentRepository;
 import cloudnative.spring.domain.appointment.repository.PlaceRepository;
+import cloudnative.spring.global.exception.GeneralException;
+import cloudnative.spring.global.response.status.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -208,7 +209,44 @@ public class AppointmentService {
                 .build();
     }
 
+    /**
+     * 약속 생성 → Appointment 테이블에 저장
+     *
+     * @param placeId    이미 저장된 장소 ID
+     * @param requestDto 약속 정보
+     * @return 생성된 약속 응답 DTO
+     */
+    @Transactional
+    public AppointmentPlaceResponseDto createAppointment(Long placeId, AppointmentPlaceRequestDto requestDto) {
+        // 이미 저장된 장소 조회
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new RuntimeException("PLACE_NOT_FOUND: 선택한 장소를 찾을 수 없습니다."));
 
+        // 약속 생성
+        Appointment appointment = Appointment.builder()
+                .title(requestDto.getTitle())
+                .description(requestDto.getDescription())
+                .startTime(requestDto.getStartTime())
+                .endTime(requestDto.getEndTime())
+                .estimatedTravelTime(requestDto.getEstimatedTravelTime())
+                .status(Appointment.Status.CONFIRMED)
+                .place(place)
+                .build();
 
+        Appointment saved = appointmentRepository.save(appointment);
 
+        // 응답 변환
+        return AppointmentPlaceResponseDto.builder()
+                .appointmentId(saved.getId())
+                .title(saved.getTitle())
+                .status(saved.getStatus().name())
+                .place(AppointmentPlaceResponseDto.PlaceDto.builder()
+                        .placeId(place.getId())
+                        .name(place.getName())
+                        .address(place.getAddress())
+                        .latitude(place.getLatitude())
+                        .longitude(place.getLongitude())
+                        .build())
+                .build();
+    }
 }
