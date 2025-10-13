@@ -9,12 +9,16 @@ import cloudnative.spring.global.exception.GeneralException;
 import cloudnative.spring.global.response.status.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -261,6 +265,44 @@ public class AppointmentService {
 
         appointmentRepository.delete(appointment);
     }
-}
+    /**
+     * 개인 약속 전체 조회 (페이징)
+     */
+    @Transactional
+    public Page<AppointmentResponseDto> getAllAppointments(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Appointment> appointmentPage = appointmentRepository.findAll(pageRequest);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        return appointmentPage.map(appointment -> {
+            long durationMinutes = Duration.between(
+                    appointment.getStartTime(),
+                    appointment.getEndTime()
+            ).toMinutes();
+
+            return AppointmentResponseDto.builder()
+                    .appointmentId(appointment.getId())
+                    .title(appointment.getTitle())
+                    .description(appointment.getDescription())
+                    .date(appointment.getStartTime().toLocalDate().toString())
+                    .time(AppointmentResponseDto.TimeDto.builder()
+                            .startTime(appointment.getStartTime().format(formatter))
+                            .endTime(appointment.getEndTime().format(formatter))
+                            .duration(durationMinutes + "분")
+                            .build())
+                    .place(AppointmentResponseDto.PlaceDto.builder()
+                            .placeId(String.valueOf(appointment.getPlace().getId()))
+                            .name(appointment.getPlace().getName())
+                            .address(appointment.getPlace().getAddress())
+                            .latitude(appointment.getPlace().getLatitude())
+                            .longitude(appointment.getPlace().getLongitude())
+                            .build())
+                    .createdAt(appointment.getCreatedAt().format(formatter))
+                    .build();
+        });
+    }
+
 
 }
+
