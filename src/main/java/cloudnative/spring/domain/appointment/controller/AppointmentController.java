@@ -63,4 +63,19 @@ public class AppointmentController {
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 
+
+    /**
+     * 약속 장소 삭제
+     */
+    @DeleteMapping("/{appointmentId}")
+    public ResponseEntity<ApiResponse<String>> deleteAppointment(
+            @PathVariable Long appointmentId
+    ) {
+        appointmentService.deleteAppointment(appointmentId);
+
+        // code, message는 자동으로 ("COMMON200", "성공입니다.") 채워짐
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess("약속이 삭제되었습니다.")
+        );
+    }
 }
