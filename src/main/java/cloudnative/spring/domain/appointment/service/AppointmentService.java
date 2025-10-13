@@ -249,4 +249,18 @@ public class AppointmentService {
                         .build())
                 .build();
     }
+
+    /**
+     * 약속 삭제
+     * 존재하지 않는 약속 ID면 예외 발생
+     */
+    @Transactional
+    public void deleteAppointment(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("APPOINTMENT_NOT_FOUND: 해당 약속을 찾을 수 없습니다."));
+
+        appointmentRepository.delete(appointment);
+    }
+}
+
 }
