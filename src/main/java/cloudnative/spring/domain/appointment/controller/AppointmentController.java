@@ -5,6 +5,7 @@ import cloudnative.spring.domain.appointment.service.AppointmentService;
 import cloudnative.spring.global.response.ApiResponse;
 import cloudnative.spring.global.response.status.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,4 +79,18 @@ public class AppointmentController {
                 ApiResponse.onSuccess("약속이 삭제되었습니다.")
         );
     }
+
+
+    /**
+     * 개인 약속 전체 조회 (페이징)
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<AppointmentResponseDto>>> getAllAppointments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Page<AppointmentResponseDto> appointments = appointmentService.getAllAppointments(page, size);
+        return ResponseEntity.ok(ApiResponse.onSuccess(appointments));
+    }
+
 }
