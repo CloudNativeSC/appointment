@@ -18,6 +18,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -338,5 +340,70 @@ public class AppointmentService {
                 .createdAt(appointment.getCreatedAt().format(formatter))
                 .build();
     }
+
+
+    /**
+     * 사용자의 비어 있는 시간대 계산
+     */
+    @Transactional
+    public List<AvailableTimeResponseDto> findAvailableTimes() {
+        // 예시: 오늘 하루의 약속만 기준으로 빈 시간 찾기
+        LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.of(8, 0));  // 08:00 시작
+        LocalDateTime endOfDay = LocalDateTime.now().with(LocalTime.of(22, 0));   // 22:00 종료
+
+        // 전체 약속 조회 (실제론 로그인 사용자 기준으로 필터링 필요)
+        List<Appointment> appointments = appointmentRepository.findAll();
+
+        // 시간 순 정렬
+        appointments.sort(Comparator.comparing(Appointment::getStartTime));
+
+        List<AvailableTimeResponseDto> result = new ArrayList<>();
+        LocalDateTime currentStart = startOfDay;
+
+        for (Appointment appointment : appointments) {
+            // 현재 시작 시간보다 이전이면 건너뜀
+            if (appointment.getStartTime().isBefore(currentStart)) continue;
+
+            // 두 약속 사이의 간격 계산
+            if (appointment.getStartTime().isAfter(currentStart)) {
+                result.add(AvailableTimeResponseDto.builder()
+                        .availableStart(currentStart)
+                        .availableEnd(appointment.getStartTime())
+                        .priority(assignPriority(currentStart))
+                        .build());
+            }
+
+            // 다음 빈 구간의 시작 시점을 현재 약속 끝 이후로 설정
+            currentStart = appointment.getEndTime();
+        }
+
+        // 하루 끝 부분(마지막 약속 이후 ~ 22시)
+        if (currentStart.isBefore(endOfDay)) {
+            result.add(AvailableTimeResponseDto.builder()
+                    .availableStart(currentStart)
+                    .availableEnd(endOfDay)
+                    .priority(assignPriority(currentStart))
+                    .build());
+        }
+
+        // 우선순위(낮 시간대 > 밤 시간대)
+        result.sort(Comparator.comparingInt(AvailableTimeResponseDto::getPriority));
+
+        return result;
+    }
+
+    /**
+     * ☀️ 시간대별 우선순위 부여
+     * 낮(9~17시): 우선순위 1
+     * 저녁(17~21시): 우선순위 2
+     * 밤(21시 이후): 우선순위 3
+     */
+    private int assignPriority(LocalDateTime startTime) {
+        int hour = startTime.getHour();
+        if (hour >= 9 && hour < 17) return 1;
+        else if (hour >= 17 && hour < 21) return 2;
+        else return 3;
+    }
+
 }
 

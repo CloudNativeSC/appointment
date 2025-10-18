@@ -105,5 +105,15 @@ public class AppointmentController {
         return ResponseEntity.ok(ApiResponse.onSuccess(appointment));
     }
 
+    /**
+     * 약속 시간대 선택 기능
+     *
+     */
+    @GetMapping("/times/select")
+    public ResponseEntity<ApiResponse<List<AvailableTimeResponseDto>>> getAvailableTimes() {
+        List<AvailableTimeResponseDto> availableTimes = appointmentService.findAvailableTimes();
+        return ResponseEntity.ok(ApiResponse.onSuccess(availableTimes));
+    }
+
 
 }
