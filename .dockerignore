@@ -1,0 +1,13 @@
+# IDE 설정 파일 제외
+.idea/
+*.iml
+
+# Git 관련 파일 제외
+.git/
+.gitignore
+
+# 로그 파일 제외
+*.log
+
+# 환경 변수 파일 제외 (비밀 키 보안)
+src/main/resources/application-secret.yml
