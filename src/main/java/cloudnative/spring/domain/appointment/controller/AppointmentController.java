@@ -93,4 +93,17 @@ public class AppointmentController {
         return ResponseEntity.ok(ApiResponse.onSuccess(appointments));
     }
 
+    /**
+     * 개인 특정 약속 조회
+     *
+     */
+    @GetMapping("/{appointmentId}")
+    public ResponseEntity<ApiResponse<AppointmentResponseDto>> getAppointmentById(
+            @PathVariable Long appointmentId
+    ) {
+        AppointmentResponseDto appointment = appointmentService.getAppointmentById(appointmentId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(appointment));
+    }
+
+
 }

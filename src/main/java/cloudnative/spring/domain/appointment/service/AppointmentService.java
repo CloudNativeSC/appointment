@@ -304,5 +304,39 @@ public class AppointmentService {
     }
 
 
+    /**
+     * 개인 특정 약속 조회
+     */
+    @Transactional
+    public AppointmentResponseDto getAppointmentById(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("해당 약속을 찾을 수 없습니다."));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        long durationMinutes = Duration.between(
+                appointment.getStartTime(),
+                appointment.getEndTime()
+        ).toMinutes();
+
+        return AppointmentResponseDto.builder()
+                .appointmentId(appointment.getId())
+                .title(appointment.getTitle())
+                .description(appointment.getDescription())
+                .date(appointment.getStartTime().toLocalDate().toString())
+                .time(AppointmentResponseDto.TimeDto.builder()
+                        .startTime(appointment.getStartTime().format(formatter))
+                        .endTime(appointment.getEndTime().format(formatter))
+                        .duration(durationMinutes + "분")
+                        .build())
+                .place(AppointmentResponseDto.PlaceDto.builder()
+                        .placeId(String.valueOf(appointment.getPlace().getId()))
+                        .name(appointment.getPlace().getName())
+                        .address(appointment.getPlace().getAddress())
+                        .latitude(appointment.getPlace().getLatitude())
+                        .longitude(appointment.getPlace().getLongitude())
+                        .build())
+                .createdAt(appointment.getCreatedAt().format(formatter))
+                .build();
+    }
 }
 
